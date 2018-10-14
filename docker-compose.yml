@@ -1,0 +1,37 @@
+version: '3.0'
+networks:
+  hashring-network: {}
+  redis-network: {}
+volumes: {}
+services:
+  redis:
+    image: redis:4.0
+    networks:
+    - redis-network
+  game-server:
+    build: ../game-server
+    environment:
+    - SOCKET_PORT=8080
+    - HASHRING_PORT=7373
+    - DOCKER_IMAGE_NAME=deployment_game-server
+    - DOCKER_HASHRING_NETWORK_NAME=deployment_hashring-network
+    - REDIS_URL=redis://redis:6379
+    volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+    - hashring-network
+    - redis-network
+    depends_on:
+    - redis
+  proxy:
+    build: ../proxy
+    environment:
+    - HASHRING_BASE_HOST=game-server
+    - HASHRING_BASE_PORT=7373
+    - PORT=8080
+    networks:
+    - hashring-network
+    ports:
+    - 8080:8080
+    depends_on:
+    - game-server
