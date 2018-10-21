@@ -2,15 +2,36 @@ version: '3.0'
 networks:
   hashring-network: {}
   redis-network: {}
-volumes: {}
+  backend-network: {}
+  database-network: {}
+volumes:
+  database: {}
 services:
   redis:
     image: redis:4.0
     networks:
     - redis-network
+  database:
+    image: mongo:4.0.3
+    networks:
+    - database-network
+    volumes:
+    - database:/data/db
+  backend:
+    build: ../backend
+    environment:
+    - JWT_SECRET=REDACTED
+    - AUTH_DATABASE_CONNECTION_STRING=mongodb://database:27017/emoji-app
+    - LISTEN_PORT=8080
+    networks:
+    - backend-network
+    - database-network
+    depends_on:
+    - database
   game-server:
     build: ../game-server
     environment:
+    - JWT_SECRET=REDACTED
     - SOCKET_PORT=8080
     - HASHRING_PORT=7373
     - DOCKER_IMAGE_NAME=deployment_game-server
@@ -28,10 +49,14 @@ services:
     environment:
     - HASHRING_BASE_HOST=game-server
     - HASHRING_BASE_PORT=7373
+    - API_HOST=backend
+    - API_PORT=8080
     - PORT=8080
     networks:
     - hashring-network
+    - backend-network
     ports:
     - 8080:8080
     depends_on:
     - game-server
+    - backend
