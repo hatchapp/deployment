@@ -33,7 +33,7 @@ services:
     - SOCKET_PORT=8080
     - HASHRING_PORT=7373
     - DOCKER_IMAGE_NAME=deployment_game-server
-    - DOCKER_HASHRING_NETWORK_NAME=deployment_hashring-network
+    - DOCKER_HASHRING_NETWORK_NAME=deployment_backend-network
     - REDIS_URL=redis://redis:6379
     volumes:
     - /var/run/docker.sock:/var/run/docker.sock
